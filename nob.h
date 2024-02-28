@@ -95,8 +95,9 @@ NOB_File_Type nob_get_file_type(const char *path);
 #define nob_da_append(da, item)                                                                                                \
 	do {                                                                                                                       \
 		if ((da)->count >= (da)->capacity) {                                                                                   \
-			(da)->capacity = (da)->capacity == 0 ? NOB_DA_INIT_CAP : (da)->capacity * 2;                                       \
-			(da)->items	   = NOB_REALLOC((da)->items, (da)->capacity * sizeof(*(da)->items));                                  \
+			if ((da)->capacity == 0) (da)->capacity = NOB_DA_INIT_CAP;                                                         \
+			else (da)->capacity *= 2;                                                                                          \
+			(da)->items = NOB_REALLOC((da)->items, (da)->capacity * sizeof(*(da)->items));                                     \
 			NOB_ASSERT((da)->items != NULL && "Buy more RAM lol");                                                             \
 		}                                                                                                                      \
                                                                                                                                \
@@ -108,7 +109,7 @@ NOB_File_Type nob_get_file_type(const char *path);
 #define nob_da_append_many(da, new_items, new_items_count)                                                                     \
 	do {                                                                                                                       \
 		if ((da)->count + new_items_count > (da)->capacity) {                                                                  \
-			if ((da)->capacity == 0) { (da)->capacity = NOB_DA_INIT_CAP; }                                                     \
+			if ((da)->capacity == 0) (da)->capacity = NOB_DA_INIT_CAP;                                                         \
 			while ((da)->count + new_items_count > (da)->capacity) { (da)->capacity *= 2; }                                    \
 			(da)->items = NOB_REALLOC((da)->items, (da)->capacity * sizeof(*(da)->items));                                     \
 			NOB_ASSERT((da)->items != NULL && "Buy more RAM lol");                                                             \
@@ -243,16 +244,14 @@ int	 nob_file_exists(const char *file_path);
 	do {                                                                                                                       \
 		const char *source_path = __FILE__;                                                                                    \
 		assert(argc >= 0);                                                                                                     \
-		const char *binary_path = argv[0];                                                                                     \
-                                                                                                                               \
-		int rebuild_is_needed = nob_needs_rebuild(binary_path, &source_path, 1);                                               \
+		const char *binary_path		  = argv[0];                                                                               \
+		int			rebuild_is_needed = nob_needs_rebuild(binary_path, &source_path, 1);                                       \
 		if (rebuild_is_needed < 0) exit(1);                                                                                    \
 		if (rebuild_is_needed) {                                                                                               \
 			NOB_String_Builder sb = {0};                                                                                       \
 			nob_sb_append_cstr(&sb, binary_path);                                                                              \
 			nob_sb_append_cstr(&sb, ".old");                                                                                   \
 			nob_sb_append_null(&sb);                                                                                           \
-                                                                                                                               \
 			if (!nob_rename(binary_path, sb.items)) exit(1);                                                                   \
 			NOB_Cmd rebuild = {0};                                                                                             \
 			nob_cmd_append(&rebuild, NOB_REBUILD_YOURSELF(binary_path, source_path));                                          \
