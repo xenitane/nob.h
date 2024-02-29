@@ -95,8 +95,11 @@ NOB_File_Type nob_get_file_type(const char *path);
 #define nob_da_append(da, item)                                                                                                \
 	do {                                                                                                                       \
 		if ((da)->count >= (da)->capacity) {                                                                                   \
-			if ((da)->capacity == 0) (da)->capacity = NOB_DA_INIT_CAP;                                                         \
-			else (da)->capacity *= 2;                                                                                          \
+			if ((da)->capacity == 0) {                                                                                         \
+				(da)->capacity = NOB_DA_INIT_CAP;                                                                              \
+			} else {                                                                                                           \
+				(da)->capacity *= 2;                                                                                           \
+			}                                                                                                                  \
 			(da)->items = NOB_REALLOC((da)->items, (da)->capacity * sizeof(*(da)->items));                                     \
 			NOB_ASSERT((da)->items != NULL && "Buy more RAM lol");                                                             \
 		}                                                                                                                      \
@@ -109,7 +112,7 @@ NOB_File_Type nob_get_file_type(const char *path);
 #define nob_da_append_many(da, new_items, new_items_count)                                                                     \
 	do {                                                                                                                       \
 		if ((da)->count + new_items_count > (da)->capacity) {                                                                  \
-			if ((da)->capacity == 0) (da)->capacity = NOB_DA_INIT_CAP;                                                         \
+			if { ((da)->capacity == 0)(da)->capacity = NOB_DA_INIT_CAP; }                                                      \
 			while ((da)->count + new_items_count > (da)->capacity) { (da)->capacity *= 2; }                                    \
 			(da)->items = NOB_REALLOC((da)->items, (da)->capacity * sizeof(*(da)->items));                                     \
 			NOB_ASSERT((da)->items != NULL && "Buy more RAM lol");                                                             \
@@ -246,13 +249,13 @@ int	 nob_file_exists(const char *file_path);
 		assert(argc >= 0);                                                                                                     \
 		const char *binary_path		  = argv[0];                                                                               \
 		int			rebuild_is_needed = nob_needs_rebuild(binary_path, &source_path, 1);                                       \
-		if (rebuild_is_needed < 0) exit(1);                                                                                    \
+		if (rebuild_is_needed < 0) { exit(1); }                                                                                \
 		if (rebuild_is_needed) {                                                                                               \
 			NOB_String_Builder sb = {0};                                                                                       \
 			nob_sb_append_cstr(&sb, binary_path);                                                                              \
 			nob_sb_append_cstr(&sb, ".old");                                                                                   \
 			nob_sb_append_null(&sb);                                                                                           \
-			if (!nob_rename(binary_path, sb.items)) exit(1);                                                                   \
+			if (!nob_rename(binary_path, sb.items)) { exit(1); }                                                               \
 			NOB_Cmd rebuild = {0};                                                                                             \
 			nob_cmd_append(&rebuild, NOB_REBUILD_YOURSELF(binary_path, source_path));                                          \
 			bool rebuild_succeeded = nob_cmd_run_sync(rebuild);                                                                \
@@ -263,7 +266,7 @@ int	 nob_file_exists(const char *file_path);
 			}                                                                                                                  \
 			NOB_Cmd cmd = {0};                                                                                                 \
 			nob_da_append_many(&cmd, argv, argc);                                                                              \
-			if (!nob_cmd_run_sync(cmd)) exit(1);                                                                               \
+			if (!nob_cmd_run_sync(cmd)) { exit(1); }                                                                           \
 			exit(0);                                                                                                           \
 		}                                                                                                                      \
 	} while (0)
@@ -369,7 +372,7 @@ bool nob_copy_file(const char *src_path, const char *dst_path) {
 
 	while (1) {
 		ssize_t n = read(src_fd, buff, buf_size);
-		if (n == 0) break;
+		if (n == 0) { break; }
 		if (n < 0) {
 			nob_log(NOB_ERROR, "could not read from file %s: %s", src_path, str_err_no);
 			nob_return_defer(false);
@@ -396,8 +399,8 @@ defer:
 void nob_cmd_render(NOB_Cmd cmd, NOB_String_Builder *render) {
 	for (size_t i = 0; i < cmd.count; i++) {
 		const char *arg = cmd.items[i];
-		if (arg == NULL) break;
-		if (i > 0) nob_sb_append_cstr(render, " ");
+		if (arg == NULL) { break; }
+		if (i > 0) { nob_sb_append_cstr(render, " "); }
 		if (!strchr(arg, ' ')) {
 			nob_sb_append_cstr(render, arg);
 		} else {
@@ -466,13 +469,13 @@ NOB_Proc nob_cmd_run_async(NOB_Cmd cmd) {
 
 bool nob_procs_wait(NOB_Procs procs) {
 	for (size_t i = 0; i < procs.count; i++) {
-		if (!nob_proc_wait(procs.items)) return false;
+		if (!nob_proc_wait(procs.items[i])) { return false; }
 	}
 	return true;
 }
 
 bool nob_proc_wait(NOB_Proc proc) {
-	if (proc == NOB_INVALID_PROC) return false;
+	if (proc == NOB_INVALID_PROC) { return false; }
 #ifdef _WIN32
 	DWORD result = WaitForSignalObject(
 		proc,	 // handle hHandle
@@ -525,7 +528,7 @@ bool nob_proc_wait(NOB_Proc proc) {
 
 bool nob_cmd_run_sync(NOB_Cmd cmd) {
 	NOB_Proc p = nob_cmd_run_async(cmd);
-	if (p == NOB_INVALID_PROC) return false;
+	if (p == NOB_INVALID_PROC) { return false; }
 	return nob_proc_wait(p);
 }
 
@@ -539,10 +542,18 @@ char *nob_shift_args(int *argc, char ***argv) {
 
 void nob_log(NOB_Log_Level level, const char *fmt, ...) {
 	switch (level) {
-	case NOB_INFO: fprintf(stderr, "[INFO]"); break;
-	case NOB_WARNING: fprintf(stderr, "[WARNING]"); break;
-	case NOB_ERROR: fprintf(stderr, "[ERROR]"); break;
-	default: NOB_ASSERT(0 && "unreachable");
+	case NOB_INFO: {
+		fprintf(stderr, "[INFO]");
+	} break;
+	case NOB_WARNING: {
+		fprintf(stderr, "[WARNING]");
+	} break;
+	case NOB_ERROR: {
+		fprintf(stderr, "[ERROR]");
+	} break;
+	default: {
+		NOB_ASSERT(0 && "unreachable");
+	}
 	}
 	va_list args;
 	va_start(args, fmt);
@@ -571,7 +582,7 @@ bool nob_read_entire_dir(const char *parent, NOB_File_Paths *children) {
 		nob_return_defer(false);
 	}
 defer:
-	if (dir) closedir(dir);
+	if (dir) { closedir(dir); }
 	return result;
 }
 
@@ -594,7 +605,7 @@ bool nob_write_entire_file(const char *path, const void *data, size_t size) {
 		buff += n;
 	}
 defer:
-	if (out_file) fclose(out_file);
+	if (out_file) { fclose(out_file); }
 	return result;
 }
 
@@ -615,10 +626,18 @@ NOB_File_Type nob_get_file_type(const char *path) {
 		return -1;
 	}
 	switch (statbuf.st_mode & __S_IFMT) {
-	case __S_IFDIR: return NOB_FILE_DIRECTORY;
-	case __S_IFREG: return NOB_FILE_REGULAR;
-	case __S_IFLNK: return NOB_FILE_SYMLINK;
-	default: return NOB_FILE_OTHER;
+	case __S_IFDIR: {
+		return NOB_FILE_DIRECTORY;
+	}
+	case __S_IFREG: {
+		return NOB_FILE_REGULAR;
+	}
+	case __S_IFLNK: {
+		return NOB_FILE_SYMLINK;
+	}
+	default: {
+		return NOB_FILE_OTHER;
+	}
 	}
 #endif
 }
@@ -631,15 +650,15 @@ bool nob_copy_directory_recursively(const char *src_path, const char *dst_path) 
 	size_t			   temp_checkpoint = nob_temp_save();
 
 	NOB_File_Type type = nob_get_file_type(src_path);
-	if (type < 0) return false;
+	if (type < 0) { return false; }
 
 	switch (type) {
 	case NOB_FILE_DIRECTORY: {
 		if (!nob_mkdir_if_not_exists(dst_path)) nob_return_defer(false);
 		if (!nob_read_entire_dir(src_path, &children)) nob_return_defer(false);
 		for (size_t i = 0; i < children.count; i++) {
-			if (strcmp(children.items[i], ".") == 0) continue;
-			if (strcmp(children.items[i], "..") == 0) continue;
+			if (strcmp(children.items[i], ".") == 0) { continue; }
+			if (strcmp(children.items[i], "..") == 0) { continue; }
 
 			src_sb.count = 0;
 			nob_sb_append_cstr(&src_sb, src_path);
@@ -647,11 +666,11 @@ bool nob_copy_directory_recursively(const char *src_path, const char *dst_path) 
 			nob_sb_append_cstr(&src_sb, children.items[i]);
 			nob_sb_append_null(&src_sb);
 
-			if (!nob_copy_directory_recursively(src_sb.items, dst_sb.items)) nob_return_defer(false);
+			if (!nob_copy_directory_recursively(src_sb.items, dst_sb.items)) { nob_return_defer(false); }
 		}
 	} break;
 	case NOB_FILE_REGULAR: {
-		if (!nob_copy_file(src_path, dst_path)) nob_return_defer(false);
+		if (!nob_copy_file(src_path, dst_path)) { nob_return_defer(false); }
 	} break;
 	case NOB_FILE_SYMLINK: {
 		nob_log(NOB_WARNING, "TODO: Copying symlinks is not supported yet");
@@ -660,7 +679,9 @@ bool nob_copy_directory_recursively(const char *src_path, const char *dst_path) 
 		nob_log(NOB_ERROR, "Unsupported type of file %s", src_path);
 		nob_return_defer(false);
 	} break;
-	default: NOB_ASSERT(0 && "unreachable");
+	default: {
+		NOB_ASSERT(0 && "unreachable");
+	}
 	}
 defer:
 	nob_temp_rewind(temp_checkpoint);
@@ -680,7 +701,7 @@ char *nob_temp_strdup(const char *cstr) {
 }
 
 void *nob_temp_alloc(size_t size) {
-	if (nob_temp_size + size > NOB_TEMP_CAPACITY) return NULL;
+	if (nob_temp_size + size > NOB_TEMP_CAPACITY) { return NULL; }
 	void *result = &nob_temp[nob_temp_size];
 	nob_temp_size += size;
 	return result;
@@ -723,7 +744,7 @@ int nob_needs_rebuild(const char *output_path, const char **input_paths, size_t 
 
 	HANDLE output_path_fd = CreateFile(output_path, GENERIC_READ, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_READONLY, NULL);
 	if (output_fd == INVALID_HANDLE_VALUE) {
-		if (GetLastError() == ERROR_FILE_NOT_FOUND) return 1;
+		if (GetLastError() == ERROR_FILE_NOT_FOUND) { return 1; }
 		nob_log(NOB_ERROR, "Could not open file %s: %lu", output_path, GetLastError());
 		return -1;
 	}
@@ -749,13 +770,13 @@ int nob_needs_rebuild(const char *output_path, const char **input_paths, size_t 
 			nob_log(NOB_ERROR, "Could not get time of %s: %lu", input_path, GetLastError());
 			return -1;
 		}
-		if (CompareFileTime(&input_path_time, &output_path_time) == 1) return 1;
+		if (CompareFileTime(&input_path_time, &output_path_time) == 1) { return 1; }
 	}
-#else
+#else return 1;
 	struct stat statbuf = {0};
 
 	if (stat(output_path, &statbuf) < 0) {
-		if (errno == ENOENT) return 1;
+		if (errno == ENOENT) { return 1; }
 		nob_log(NOB_ERROR, "could not stat %s: %s", output_path, str_err_no);
 		return -1;
 	}
@@ -768,7 +789,7 @@ int nob_needs_rebuild(const char *output_path, const char **input_paths, size_t 
 			return -1;
 		}
 		int input_path_time = statbuf.st_mtime;
-		if (input_path_time > output_path_time) return 1;
+		if (input_path_time > output_path_time) { return 1; }
 	}
 #endif
 	return 0;
@@ -797,11 +818,11 @@ bool nob_rename(const char *old_path, const char *new_path) {
 bool nob_read_entire_file(const char *path, NOB_String_Builder *sb) {
 	bool  result	 = true;
 	FILE *input_file = fopen(path, "rb");
-	if (input_file == NULL) nob_return_defer(false);
-	if (fseek(input_file, 0, SEEK_END) < 0) nob_return_defer(false);
+	if (input_file == NULL) { nob_return_defer(false); }
+	if (fseek(input_file, 0, SEEK_END) < 0) { nob_return_defer(false); }
 	long m = ftell(input_file);
-	if (m < 0) nob_return_defer(false);
-	if (fseek(input_file, 0, SEEK_SET) < 0) nob_return_defer(false);
+	if (m < 0) { nob_return_defer(false); }
+	if (fseek(input_file, 0, SEEK_SET) < 0) { nob_return_defer(false); }
 
 	size_t new_count = sb->count + m;
 	if (new_count > sb->capacity) {
@@ -810,17 +831,17 @@ bool nob_read_entire_file(const char *path, NOB_String_Builder *sb) {
 		sb->capacity = new_count;
 	}
 	fread(sb->items + sb->count, m, 1, input_file);
-	if (ferror(input_file)) nob_return_defer(false);
+	if (ferror(input_file)) { nob_return_defer(false); }
 	sb->count = new_count;
 defer:
-	if (!result) nob_log(NOB_ERROR, "Could not read file %s: %s", path, str_err_no);
-	if (input_file) fclose(input_file);
+	if (!result) { nob_log(NOB_ERROR, "Could not read file %s: %s", path, str_err_no); }
+	if (input_file) { fclose(input_file); }
 	return result;
 }
 
 NOB_String_View nob_sv_chop_by_delim(NOB_String_View *sv, char delim) {
 	size_t i = 0;
-	while (i < sv->count && sv->data[i] != delim) i++;
+	while (i < sv->count && sv->data[i] != delim) { i++; }
 	NOB_String_View result = nob_sv_from_parts(sv->data, i);
 
 	if (i < sv->count) {
@@ -842,13 +863,13 @@ NOB_String_View nob_sv_from_parts(const char *data, size_t count) {
 
 NOB_String_View nob_sv_trim_left(NOB_String_View sv) {
 	size_t i = 0;
-	while (i < sv.count && isspace(sv.data[i])) i++;
+	while (i < sv.count && isspace(sv.data[i])) { i++; }
 	return nob_sv_from_parts(sv.data + i, sv.count - i);
 }
 
 NOB_String_View nob_sv_trim_right(NOB_String_View sv) {
 	size_t i = 0;
-	while (i < sv.count && isspace(sv.data[sv.count - i - 1])) i++;
+	while (i < sv.count && isspace(sv.data[sv.count - i - 1])) { i++; }
 	return nob_sv_from_parts(sv.data, sv.count - i);
 }
 
@@ -873,7 +894,7 @@ int nob_file_exists(const char *file_path) {
 #else
 	struct stat statbuf;
 	if (stat(file_path, &statbuf) < 0) {
-		if (errno == ENOENT) return 0;
+		if (errno == ENOENT) { return 0; }
 		nob_log(NOB_ERROR, "Could not check if file %s exists: %s", file_path, str_err_no);
 		return -1;
 	}
@@ -905,7 +926,7 @@ DIR *opendir(const char *dirpath) {
 	return dir;
 
 fail:
-	if (dir) NOB_FREE(dir);
+	if (dir) { NOB_FREE(dir); }
 	return NULL;
 }
 
@@ -928,14 +949,14 @@ struct dirent *readdir(DIR *dirp) {
 }
 
 int closedir(DIR *dirp) {
-	assert(dirp);
+	NOB_ASSERT(dirp);
 
 	if (!FindClose(dirp->hFind)) {
 		// TODO: closedir should set errno accordingly on FindClose fail
 		errno = ENOSYS;
 		return -1;
 	}
-	if (dirp->dirent) NOB_FREE(dirp->dirent);
+	if (dirp->dirent) { NOB_FREE(dirp->dirent); }
 	free(dirp);
 
 	return 0;
