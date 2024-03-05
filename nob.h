@@ -112,7 +112,7 @@ NOB_File_Type nob_get_file_type(const char *path);
 #define nob_da_append_many(da, new_items, new_items_count)                                                                     \
 	do {                                                                                                                       \
 		if ((da)->count + new_items_count > (da)->capacity) {                                                                  \
-			if { ((da)->capacity == 0)(da)->capacity = NOB_DA_INIT_CAP; }                                                      \
+			if ((da)->capacity == 0) { (da)->capacity = NOB_DA_INIT_CAP; }                                                     \
 			while ((da)->count + new_items_count > (da)->capacity) { (da)->capacity *= 2; }                                    \
 			(da)->items = NOB_REALLOC((da)->items, (da)->capacity * sizeof(*(da)->items));                                     \
 			NOB_ASSERT((da)->items != NULL && "Buy more RAM lol");                                                             \
@@ -543,13 +543,13 @@ char *nob_shift_args(int *argc, char ***argv) {
 void nob_log(NOB_Log_Level level, const char *fmt, ...) {
 	switch (level) {
 	case NOB_INFO: {
-		fprintf(stderr, "[INFO]");
+		fprintf(stderr, "[INFO] ");
 	} break;
 	case NOB_WARNING: {
-		fprintf(stderr, "[WARNING]");
+		fprintf(stderr, "[WARNING] ");
 	} break;
 	case NOB_ERROR: {
-		fprintf(stderr, "[ERROR]");
+		fprintf(stderr, "[ERROR] ");
 	} break;
 	default: {
 		NOB_ASSERT(0 && "unreachable");
@@ -772,7 +772,8 @@ int nob_needs_rebuild(const char *output_path, const char **input_paths, size_t 
 		}
 		if (CompareFileTime(&input_path_time, &output_path_time) == 1) { return 1; }
 	}
-#else return 1;
+	return 0;
+#else
 	struct stat statbuf = {0};
 
 	if (stat(output_path, &statbuf) < 0) {
